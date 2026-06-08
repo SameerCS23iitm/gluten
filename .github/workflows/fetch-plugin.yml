@@ -4,12 +4,13 @@ jobs:
   fetch:
     runs-on: ubuntu-22.04
     steps:
-      - name: Download missing plugin and mark as local
+      - name: Fetch plugin and all transitive deps
         run: |
           mvn dependency:get -Dartifact=org.codehaus.mojo:build-helper-maven-plugin:3.6.0
-          sed -i 's/>central=/>=/g' \
-            ~/.m2/repository/org/codehaus/mojo/build-helper-maven-plugin/3.6.0/_remote.repositories
+          mvn dependency:get -Dartifact=org.codehaus.mojo:mojo-parent:pom:82
+          find ~/.m2/repository/org/codehaus/mojo -name "_remote.repositories" \
+            -exec sed -i 's/>central=/>=/g' {} \;
       - uses: actions/upload-artifact@v4
         with:
-          name: build-helper-maven-plugin-3.6.0
-          path: ~/.m2/repository/org/codehaus/mojo/build-helper-maven-plugin/3.6.0/
+          name: mojo-deps
+          path: ~/.m2/repository/org/codehaus/mojo/
