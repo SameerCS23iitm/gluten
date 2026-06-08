@@ -4,12 +4,11 @@ jobs:
   fetch:
     runs-on: ubuntu-22.04
     steps:
-      - name: Fetch plugin and all transitive deps
+      - name: Fetch plugin and deps
         run: |
           mvn dependency:get -Dartifact=org.codehaus.mojo:build-helper-maven-plugin:3.6.0
-          mvn dependency:get -Dartifact=org.codehaus.mojo:mojo-parent:pom:82
-          find ~/.m2/repository/org/codehaus/mojo -name "_remote.repositories" \
-            -exec sed -i 's/>central=/>=/g' {} \;
+          mvn dependency:get -Dartifact=org.codehaus.mojo:mojo-parent:82:pom
+          find ~/.m2/repository/org/codehaus/mojo -name "_remote.repositories" -exec sed -i 's/>central=/>=/g' {} \;
       - uses: actions/upload-artifact@v4
         with:
           name: mojo-deps
