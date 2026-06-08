@@ -1,0 +1,15 @@
+name: fetch-maven-plugin
+on: workflow_dispatch
+jobs:
+  fetch:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download missing plugin and mark as local
+        run: |
+          mvn dependency:get -Dartifact=org.codehaus.mojo:build-helper-maven-plugin:3.6.0
+          sed -i 's/>central=/>=/g' \
+            ~/.m2/repository/org/codehaus/mojo/build-helper-maven-plugin/3.6.0/_remote.repositories
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-helper-maven-plugin-3.6.0
+          path: ~/.m2/repository/org/codehaus/mojo/build-helper-maven-plugin/3.6.0/
