@@ -1,4 +1,3 @@
-
 name: fetch-plugin-deps
 on: workflow_dispatch
 jobs:
@@ -8,30 +7,33 @@ jobs:
       - name: Run plugin to resolve all transitive deps
         run: |
           mkdir -p test-project/src/main/java/extra
-          cat > test-project/pom.xml << 'POMEOF'
-          <project>
-            <modelVersion>4.0.0</modelVersion>
-            <groupId>test</groupId><artifactId>test</artifactId><version>1.0</version>
-            <build><plugins><plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>build-helper-maven-plugin</artifactId>
-              <version>3.6.0</version>
-              <executions><execution>
-                <id>add</id><phase>generate-sources</phase>
-                <goals><goal>add-source</goal></goals>
-                <configuration><sources><source>src/main/java/extra</source></sources></configuration>
-              </execution></executions>
-            </plugin></plugins></build>
-          </project>
-          POMEOF
+          python3 -c "
+          pom = '''<project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>test</groupId>
+          <artifactId>test</artifactId>
+          <version>1.0</version>
+          <build><plugins><plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.6.0</version>
+          <executions><execution>
+          <id>add</id><phase>generate-sources</phase>
+          <goals><goal>add-source</goal></goals>
+          <configuration><sources><source>src/main/java/extra</source></sources></configuration>
+          </execution></executions>
+          </plugin></plugins></build>
+          </project>'''
+          open('test-project/pom.xml', 'w').write(pom)
+          "
           cd test-project && mvn generate-sources
-          find /home/runner/.m2/repository/org/codehaus/mojo \
-               /home/runner/.m2/repository/org/apache/maven/shared \
-            -name "_remote.repositories" \
-            -exec sed -i 's/>central=/>=/g' {} \; 2>/dev/null || true
+          find /home/runner/.m2/repository/org/apache/maven \
+               /home/runner/.m2/repository/org/codehaus \
+            -name '_remote.repositories' \
+            -exec sed -i 's/>central=/>=/g' {} \;
       - uses: actions/upload-artifact@v4
         with:
           name: plugin-deps
           path: |
-            /home/runner/.m2/repository/org/codehaus/mojo/
-            /home/runner/.m2/repository/org/apache/maven/shared/
+            /home/runner/.m2/repository/org/apache/maven/
+            /home/runner/.m2/repository/org/codehaus/
