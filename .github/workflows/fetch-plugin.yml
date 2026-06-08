@@ -28,6 +28,7 @@ jobs:
           "
           cd test-project && mvn generate-sources
           find /home/runner/.m2/repository/org/apache/maven \
+               /home/runner/.m2/repository/org/apache/apache \
                /home/runner/.m2/repository/org/codehaus \
             -name '_remote.repositories' \
             -exec sed -i 's/>central=/>=/g' {} \;
@@ -36,4 +37,5 @@ jobs:
           name: plugin-deps
           path: |
             /home/runner/.m2/repository/org/apache/maven/
+            /home/runner/.m2/repository/org/apache/apache/
             /home/runner/.m2/repository/org/codehaus/
