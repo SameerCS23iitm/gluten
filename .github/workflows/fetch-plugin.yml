@@ -1,15 +1,30 @@
-name: fetch-maven-plugin
+name: fetch-gluten-deps
 on: workflow_dispatch
 jobs:
   fetch:
     runs-on: ubuntu-22.04
     steps:
-      - name: Fetch plugin and deps
+      - uses: actions/checkout@v4
+        with:
+          repository: apache/gluten
+          ref: main
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+      - name: Resolve all plugin and build deps
         run: |
-          mvn dependency:get -Dartifact=org.codehaus.mojo:build-helper-maven-plugin:3.6.0
-          mvn dependency:get -Dartifact=org.codehaus.mojo:mojo-parent:82:pom
-          find ~/.m2/repository/org/codehaus/mojo -name "_remote.repositories" -exec sed -i 's/>central=/>=/g' {} \;
+          mvn dependency:resolve-plugins -Pbackends-velox -Piceberg -Pspark-3.5 --fail-at-end || true
+          mvn dependency:go-offline -Pbackends-velox -Piceberg -Pspark-3.5 --fail-at-end || true
+          find ~/.m2/repository/org/codehaus/mojo \
+               ~/.m2/repository/org/apache/maven/shared \
+               ~/.m2/repository/org/apache/maven/plugins \
+            -name "_remote.repositories" \
+            -exec sed -i 's/>central=/>=/g;s/>releases=/>=/g' {} \; 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         with:
-          name: mojo-deps
-          path: ~/.m2/repository/org/codehaus/mojo/
+          name: maven-plugin-deps
+          path: |
+            /root/.m2/repository/org/codehaus/mojo/
+            /root/.m2/repository/org/apache/maven/shared/
+            /root/.m2/repository/org/apache/maven/plugins/
